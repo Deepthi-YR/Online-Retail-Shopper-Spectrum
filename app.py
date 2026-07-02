@@ -173,6 +173,9 @@ def create_rfm(df):
 
     return rfm
 
+st.write(df.head())
+st.write(df.columns.tolist())
+st.write(df.columns)
 
 rfm = create_rfm(df)
 
