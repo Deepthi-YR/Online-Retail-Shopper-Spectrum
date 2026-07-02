@@ -814,3 +814,161 @@ Total money spent by the customer.
 Higher is better.
 
 """)
+
+# ==========================================================
+# PRODUCT RECOMMENDATION
+# ==========================================================
+
+elif page == "Product Recommendation":
+
+    st.title("🛒 Product Recommendation System")
+
+    st.markdown(
+        """
+        Recommend products using **Customer-Based Collaborative Filtering**.
+        Recommendations are generated dynamically from the purchase history.
+        """
+    )
+
+    st.divider()
+
+    customer_ids = sorted(customer_product.index.tolist())
+
+    customer_id = st.selectbox(
+
+        "Select Customer ID",
+
+        customer_ids
+
+    )
+
+    top_n = st.slider(
+
+        "Number of Recommendations",
+
+        min_value=5,
+
+        max_value=20,
+
+        value=10
+
+    )
+
+    st.subheader("🛍 Previously Purchased Products")
+
+    purchased_products = customer_product.columns[
+        customer_product.loc[customer_id] == 1
+    ]
+
+    if len(purchased_products):
+
+        purchased_df = pd.DataFrame({
+
+            "Purchased Products": purchased_products
+
+        })
+
+        st.dataframe(
+
+            purchased_df,
+
+            use_container_width=True,
+
+            hide_index=True
+
+        )
+
+    else:
+
+        st.info("No purchase history available.")
+
+    if st.button("Generate Recommendations"):
+
+        with st.spinner("Finding similar customers..."):
+
+            recommendations = recommend_products(
+
+                customer_id,
+
+                top_n
+
+            )
+
+        st.subheader("⭐ Recommended Products")
+
+        if recommendations.empty:
+
+            st.warning(
+
+                "No recommendations available for this customer."
+
+            )
+
+        else:
+
+            st.dataframe(
+
+                recommendations,
+
+                use_container_width=True,
+
+                hide_index=True
+
+            )
+
+            fig = px.bar(
+
+                recommendations,
+
+                x="Score",
+
+                y="Product",
+
+                orientation="h",
+
+                title="Recommendation Scores"
+
+            )
+
+            fig.update_layout(
+
+                template="plotly_white",
+
+                yaxis={'categoryorder':'total ascending'}
+
+            )
+
+            st.plotly_chart(
+
+                fig,
+
+                use_container_width=True
+
+            )
+
+            st.subheader("📌 Recommendation Insights")
+
+            st.success(
+
+                f"""
+Top {len(recommendations)} products are recommended because
+customers with similar purchasing behaviour bought these items.
+                """
+
+            )
+
+# ==========================================================
+# FOOTER
+# ==========================================================
+
+st.divider()
+
+st.caption(
+
+    """
+    Shopper Spectrum | Customer Segmentation & Product Recommendation System
+
+    Built using Streamlit • Scikit-learn • Plotly • Pandas
+    """
+
+)
