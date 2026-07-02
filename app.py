@@ -41,7 +41,7 @@ h1,h2,h3{color:#0E4C92;}
 @st.cache_data
 def load_data():
 
-    df = pd.read_csv("C:/Users/shash/Desktop/D/Labmentix/Project 9/online_retail.csv, encoding="ISO-8859-1")
+    df = pd.read_csv("C:/Users/shash/Desktop/D/Labmentix/Project 9/online_retail.csv", encoding="ISO-8859-1")
 
     df.dropna(subset=["CustomerID"], inplace=True)
     df = df[df["Quantity"] > 0]
