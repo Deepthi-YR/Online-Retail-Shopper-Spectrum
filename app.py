@@ -38,29 +38,7 @@ h1,h2,h3{color:#0E4C92;}
 
 </style>""", unsafe_allow_html=True)
 
-# ==========================================================
-# LOAD DATA
-# ==========================================================
-@st.cache_data
-def load_data():
-    df = pd.read_csv(
-        "C:/Users/shash/Desktop/D/Labmentix/Project 9/online_retail.csv",
-        encoding="ISO-8859-1"
-    )
 
-    df.dropna(subset=["CustomerID"], inplace=True)
-
-    df = df[df["Quantity"] > 0]
-
-    df = df[df["UnitPrice"] > 0]
-
-    df["CustomerID"] = df["CustomerID"].astype(int)
-
-    df["InvoiceDate"] = pd.to_datetime(df["InvoiceDate"])
-
-    df["TotalPrice"] = df["Quantity"] * df["UnitPrice"]
-
-    return df
 
 # ==========================================================
 # LOAD ML MODELS
@@ -121,6 +99,7 @@ def load_data():
 
     return df
 
+df = load_data()
 scaler, model = load_models()
 
 # ==========================================================
@@ -172,10 +151,6 @@ def create_rfm(df):
     ]
 
     return rfm
-
-st.write(df.head())
-st.write(df.columns.tolist())
-st.write(df.columns)
 
 rfm = create_rfm(df)
 
