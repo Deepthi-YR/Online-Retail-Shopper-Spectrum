@@ -2,71 +2,47 @@
 # SHOPPER SPECTRUM
 # Customer Segmentation & Product Recommendation System
 # ==========================================================
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-
 import plotly.express as px
 import plotly.graph_objects as go
-
 from sklearn.metrics.pairwise import cosine_similarity
-
 from datetime import datetime
 
 st.set_page_config(
     page_title="Shopper Spectrum",
     page_icon="🛒",
     layout="wide",
-    initial_sidebar_state="expanded"
-)
-
+    initial_sidebar_state="expanded")
 # ==========================================================
 # CUSTOM CSS
 # ==========================================================
-
-st.markdown("""
-<style>
-
-.main{
-    background:#f8f9fc;
-}
-
-h1,h2,h3{
-    color:#0E4C92;
-}
-
+st.markdown("""<style>.main{background:#f8f9fc;}
+h1,h2,h3{color:#0E4C92;}
 .metric-card{
     background:white;
     padding:18px;
     border-radius:15px;
     box-shadow:0px 2px 10px rgba(0,0,0,0.08);
-    text-align:center;
-}
-
+    text-align:center;}
 .sidebar .sidebar-content{
-    background:#0E4C92;
-}
-
+    background:#0E4C92;}
 .stButton>button{
     width:100%;
     border-radius:8px;
     background:#0E4C92;
     color:white;
-    font-weight:bold;
-}
+    font-weight:bold;}
 
-</style>
-""", unsafe_allow_html=True)
+</style>""", unsafe_allow_html=True)
 
 # ==========================================================
 # LOAD DATA
 # ==========================================================
-
 @st.cache_data
 def load_data():
-
     df = pd.read_csv(
         "online_retail.csv",
         encoding="ISO-8859-1"
