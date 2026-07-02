@@ -79,7 +79,47 @@ def load_models():
 # INITIALIZE
 # ==========================================================
 
-df = load_data()
+import os
+
+@st.cache_data
+def load_data():
+
+    possible_files = [
+        "online_retail.csv",
+        "OnlineRetail.csv",
+        "Online Retail.csv",
+        "data/online_retail.csv",
+        "dataset/online_retail.csv"
+    ]
+
+    file_path = None
+
+    for f in possible_files:
+        if os.path.exists(f):
+            file_path = f
+            break
+
+    if file_path is None:
+        st.error("Dataset not found.")
+        st.stop()
+
+    df = pd.read_csv(
+        file_path,
+        encoding="ISO-8859-1"
+    )
+
+    df.dropna(subset=["CustomerID"], inplace=True)
+
+    df = df[df["Quantity"] > 0]
+    df = df[df["UnitPrice"] > 0]
+
+    df["CustomerID"] = df["CustomerID"].astype(int)
+
+    df["InvoiceDate"] = pd.to_datetime(df["InvoiceDate"])
+
+    df["TotalPrice"] = df["Quantity"] * df["UnitPrice"]
+
+    return df
 
 scaler, model = load_models()
 
