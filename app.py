@@ -1,8 +1,3 @@
-app.py
-customer_segment_model.pkl
-scaler.pkl
-similarity.pkl
-requirements.txt
 
 import streamlit as st
 import pandas as pd
