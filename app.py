@@ -25,7 +25,7 @@ st.markdown("---")
 # -----------------------------
 # Dataset Loading
 # -----------------------------
-DATA_PATH = Path("online_retail.csv")
+DATA_PATH = "C:/Users/shash/Desktop/D/Labmentix/Project 9/online_retail.csv"
 
 @st.cache_data
 def load_data():
