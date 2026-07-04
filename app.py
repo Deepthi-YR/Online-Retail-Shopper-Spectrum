@@ -25,18 +25,14 @@ st.markdown("---")
 # -----------------------------
 # Dataset Loading
 # -----------------------------
-DATA_PATH = "C:/Users/shash/Desktop/D/Labmentix/Project 9/online_retail.csv"
+from pathlib import Path
 
-@st.cache_data
-def load_data():
-    df = pd.read_csv(DATA_PATH, encoding="ISO-8859-1")
-    return df
+local_path = Path("online_retail.csv")
 
-try:
-    df = load_data()
-    st.success("Dataset loaded successfully.")
-except Exception as e:
-    st.error(f"Error loading dataset: {e}")
+if local_path.exists():
+    df = pd.read_csv(local_path, encoding="ISO-8859-1")
+else:
+    st.error("Dataset not found. Please place 'online_retail.csv' in the project folder.")
     st.stop()
 
 # -----------------------------
