@@ -1,92 +1,160 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import plotly.express as px
-import pickle
-from pathlib import Path
+import joblib
 
-# -----------------------------
+# -------------------------------------------------
 # Page Configuration
-# -----------------------------
+# -------------------------------------------------
 st.set_page_config(
     page_title="Shopper Spectrum",
-    page_icon="🛍️",
+    page_icon="🛒",
     layout="wide"
 )
 
-# -----------------------------
-# Title
-# -----------------------------
-st.title("🛍️ Shopper Spectrum")
-st.subheader("Customer Segmentation using RFM Analysis & Machine Learning")
+# -------------------------------------------------
+# Load Files
+# -------------------------------------------------
+@st.cache_resource
+def load_models():
+    scaler = joblib.load("scaler.pkl")
+    kmeans = joblib.load("kmeans_model.pkl")
+    cluster_labels = joblib.load("cluster_labels.pkl")
+    item_similarity = joblib.load("item_similarity.pkl")
 
-st.markdown("---")
+    return scaler, kmeans, cluster_labels, item_similarity
 
-# -----------------------------
-# Dataset Loading
-# -----------------------------
-from pathlib import Path
 
-local_path = Path("online_retail.csv")
+@st.cache_data
+def load_data():
+    return pd.read_csv("cleaned_online_retail.csv")
 
-if local_path.exists():
-    df = pd.read_csv(local_path, encoding="ISO-8859-1")
-else:
-    st.error("Dataset not found. Please place 'online_retail.csv' in the project folder.")
+
+try:
+    scaler, kmeans, cluster_labels, item_similarity = load_models()
+    df = load_data()
+
+except Exception as e:
+    st.error(f"Error loading files:\n\n{e}")
     st.stop()
 
-# -----------------------------
-# Dataset Preview
-# -----------------------------
-st.header("Dataset Preview")
+# -------------------------------------------------
+# Sidebar
+# -------------------------------------------------
+st.sidebar.title("Navigation")
 
-st.dataframe(df.head())
+page = st.sidebar.radio(
+    "Select Module",
+    [
+        "Home",
+        "Product Recommendation",
+        "Customer Segmentation"
+    ]
+)
 
-st.markdown("---")
+# -------------------------------------------------
+# HOME
+# -------------------------------------------------
+if page == "Home":
 
-# -----------------------------
-# Dataset Information
-# -----------------------------
-st.header("Dataset Information")
+    st.title("🛒 Shopper Spectrum")
 
-col1, col2, col3 = st.columns(3)
+    st.subheader("Customer Segmentation & Product Recommendation")
 
-with col1:
-    st.metric("Rows", f"{df.shape[0]:,}")
+    st.markdown("---")
 
-with col2:
-    st.metric("Columns", df.shape[1])
+    col1, col2, col3 = st.columns(3)
 
-with col3:
-    st.metric("Missing Values", int(df.isnull().sum().sum()))
+    with col1:
+        st.metric("Transactions", len(df))
 
-st.markdown("---")
+    with col2:
+        st.metric("Customers", df["CustomerID"].nunique())
 
-# -----------------------------
-# Basic KPIs
-# -----------------------------
-st.header("Business KPIs")
+    with col3:
+        st.metric("Products", df["Description"].nunique())
 
-# Create Total Amount
-if "TotalAmount" not in df.columns:
-    df["TotalAmount"] = df["Quantity"] * df["UnitPrice"]
+    st.markdown("---")
 
-total_customers = df["CustomerID"].nunique()
-total_orders = df["InvoiceNo"].nunique()
-total_revenue = df["TotalAmount"].sum()
-avg_order = total_revenue / total_orders
+    st.header("Project Overview")
 
-c1, c2, c3, c4 = st.columns(4)
+    st.write("""
+This application performs:
 
-c1.metric("Customers", f"{total_customers:,}")
-c2.metric("Orders", f"{total_orders:,}")
-c3.metric("Revenue", f"£{total_revenue:,.2f}")
-c4.metric("Average Order Value", f"£{avg_order:,.2f}")
+- Customer Segmentation using RFM Analysis and KMeans Clustering
+- Product Recommendation using Item-Based Collaborative Filtering
+- Real-time prediction using trained machine learning models
+""")
 
-st.markdown("---")
+# -------------------------------------------------
+# PRODUCT RECOMMENDATION
+# -------------------------------------------------
+elif page == "Product Recommendation":
 
-# -----------------------------
-# Raw Data
-# -----------------------------
-if st.checkbox("Show Complete Dataset"):
-    st.dataframe(df)
+    st.title("🛍 Product Recommendation")
+
+    product_name = st.text_input("Enter Product Name")
+
+    if st.button("Recommend"):
+
+        if product_name.strip() == "":
+            st.warning("Please enter a product name.")
+
+        else:
+
+            product_upper = item_similarity.index.str.upper()
+
+            if product_name.upper() in product_upper:
+
+                original_name = item_similarity.index[
+                    product_upper.get_loc(product_name.upper())
+                ]
+
+                recommendations = (
+                    item_similarity[original_name]
+                    .sort_values(ascending=False)
+                    .iloc[1:6]
+                    .index
+                )
+
+                st.success("Top 5 Recommended Products")
+
+                for product in recommendations:
+                    st.write("✅", product)
+
+            else:
+                st.error("Product not found.")
+
+# -------------------------------------------------
+# CUSTOMER SEGMENTATION
+# -------------------------------------------------
+elif page == "Customer Segmentation":
+
+    st.title("👥 Customer Segmentation")
+
+    recency = st.number_input(
+        "Recency (Days)",
+        min_value=0.0,
+        value=30.0
+    )
+
+    frequency = st.number_input(
+        "Frequency",
+        min_value=0.0,
+        value=5.0
+    )
+
+    monetary = st.number_input(
+        "Monetary",
+        min_value=0.0,
+        value=500.0
+    )
+
+    if st.button("Predict Cluster"):
+
+        sample = scaler.transform([[recency, frequency, monetary]])
+
+        cluster = kmeans.predict(sample)[0]
+
+        segment = cluster_labels.get(cluster, "Unknown")
+
+        st.success(f"Customer Segment: {segment}")
